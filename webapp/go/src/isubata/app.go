@@ -415,28 +415,14 @@ func queryChannels() ([]int64, error) {
 	return res, err
 }
 
-func queryHaveRead(userID, chID int64) (int64, error) {
-	//type HaveRead struct {
-	//	UserID    int64     `db:"user_id"`
-	//	ChannelID int64     `db:"channel_id"`
-	//	MessageID int64     `db:"message_id"`
-	//	UpdatedAt time.Time `db:"updated_at"`
-	//	CreatedAt time.Time `db:"created_at"`
-	//}
-	//h := HaveRead{}
-
-	var messageId int64
-
-	err := db.Get(&messageId, "SELECT message_id FROM haveread WHERE user_id = ? AND channel_id = ?",
-		userID, chID)
-
-	if err == sql.ErrNoRows {
-		return 0, nil
-	} else if err != nil {
-		return 0, err
+func queryHaveRead(userID) (Response, error) {
+	type Response struct {
+		ChannelID int64 `db:"channel_id"`
+		MessageID int64 `db:"message_id"`
 	}
-	//return h.MessageID, nil
-	return messageId, nil
+	response := Response{}
+	err := db.Select(&response, "SELECT hvr.channel_id, hvr.message_id FROM haveread hvr inner join (select id from channel) chl on hvr.channel_id = chl.id WHERE user_id = ?", userID)
+	return response, err
 }
 
 func fetchUnread(c echo.Context) error {
@@ -447,24 +433,20 @@ func fetchUnread(c echo.Context) error {
 
 	time.Sleep(time.Second)
 
-	channels, err := queryChannels()
+	resp := []map[string]interface{}{}
+
+	responses, err := queryHaveRead(userID)
 	if err != nil {
 		return err
 	}
 
-	resp := []map[string]interface{}{}
-
-	for _, chID := range channels {
-		lastID, err := queryHaveRead(userID, chID)
-		if err != nil {
-			return err
-		}
+	for _, response := range responses {
 
 		var cnt int64
 		if lastID > 0 {
 			err = db.Get(&cnt,
 				"SELECT COUNT(id) as cnt FROM message WHERE channel_id = ? AND ? < id",
-				chID, lastID)
+				response.ChannelID, reponse.MessageID)
 		} else {
 			err = db.Get(&cnt,
 				"SELECT COUNT(id) as cnt FROM message WHERE channel_id = ?",
