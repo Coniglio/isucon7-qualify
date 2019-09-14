@@ -451,13 +451,13 @@ func fetchUnread(c echo.Context) error {
 		} else {
 			err = db.Get(&cnt,
 				"SELECT COUNT(id) as cnt FROM message WHERE channel_id = ?",
-				chID)
+				response.ChannelID)
 		}
 		if err != nil {
 			return err
 		}
 		r := map[string]interface{}{
-			"channel_id": chID,
+			"channel_id": response.ChannelID,
 			"unread":     cnt}
 		resp = append(resp, r)
 	}
