@@ -118,13 +118,12 @@ type Message struct {
 	ID        int64     `db:"id"`
 	ChannelID int64     `db:"channel_id"`
 	UserID    int64     `db:"user_id"`
-	Content   string    `db:"content"`
 	CreatedAt time.Time `db:"created_at"`
 }
 
 func queryMessages(chanID, lastID int64) ([]Message, error) {
 	msgs := []Message{}
-	err := db.Select(&msgs, "SELECT * FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
+	err := db.Select(&msgs, "SELECT id, channel_id, user_id, created_at FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
 		lastID, chanID)
 	return msgs, err
 }
@@ -362,7 +361,6 @@ func jsonifyMessage(m Message) (map[string]interface{}, error) {
 	r["id"] = m.ID
 	r["user"] = u
 	r["date"] = m.CreatedAt.Format("2006/01/02 15:04:05")
-	r["content"] = m.Content
 	return r, nil
 }
 
