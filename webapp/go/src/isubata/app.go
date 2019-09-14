@@ -78,7 +78,7 @@ func init() {
 		time.Sleep(time.Second * 3)
 	}
 
-	db.SetMaxOpenConns(120)
+	db.SetMaxOpenConns(1200)
 	db.SetConnMaxLifetime(5 * time.Minute)
 	log.Printf("Succeeded to connect db.")
 }
