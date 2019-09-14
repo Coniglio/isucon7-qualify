@@ -116,13 +116,15 @@ func addMessage(channelID, userID int64, content string) (int64, error) {
 
 type Message struct {
 	ID        int64     `db:"id"`
+	ChannelID int64     `db:"channel_id"`
 	UserID    int64     `db:"user_id"`
+	Content   string    `db:"content"`
 	CreatedAt time.Time `db:"created_at"`
 }
 
 func queryMessages(chanID, lastID int64) ([]Message, error) {
 	msgs := []Message{}
-	err := db.Select(&msgs, "SELECT id, user_id, created_at FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
+	err := db.Select(&msgs, "SELECT * FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
 		lastID, chanID)
 	return msgs, err
 }
@@ -430,7 +432,7 @@ func fetchUnread(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	time.Sleep(time.Second)
+	time.Sleep(time.Second * 2)
 
 	resp := []map[string]interface{}{}
 
