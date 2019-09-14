@@ -444,8 +444,7 @@ func fetchUnread(c echo.Context) error {
 	for _, response := range responses {
 		r := map[string]interface{}{
 			"channel_id": response.ChannelID,
-			"unread":     response.Count
-		}
+			"unread":     response.Count}
 		resp = append(resp, r)
 	}
 
