@@ -38,11 +38,6 @@ type Renderer struct {
 	templates *template.Template
 }
 
-type Response struct {
-	ChannelID int64 `db:"channel_id"`
-	MessageID int64 `db:"message_id"`
-}
-
 func (r *Renderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	return r.templates.ExecuteTemplate(w, name, data)
 }
@@ -414,6 +409,11 @@ func getMessage(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
+type Response struct {
+	ChannelID int64 `db:"channel_id"`
+	Count     int64 `db:"cnt"`
+}
+
 func queryChannels() ([]int64, error) {
 	res := []int64{}
 	err := db.Select(&res, "SELECT id FROM channel")
@@ -422,7 +422,7 @@ func queryChannels() ([]int64, error) {
 
 func queryHaveRead(userID int64) ([]Response, error) {
 	response := []Response{}
-	err := db.Select(&response, "SELECT hvr.channel_id, hvr.message_id FROM haveread hvr inner join (select id from channel) chl on hvr.channel_id = chl.id WHERE user_id = ?", userID)
+	err := db.Select(&response, "select hvr.channel_id, case when hvr.message_id = 0 then (SELECT COUNT(msg.id) FROM message msg WHERE msg.channel_id = hvr.channel_id) else (SELECT COUNT(msg.id) FROM message msg WHERE msg.channel_id = hvr.channel_id AND hvr.message_id < msg.id) end cnt from haveread hvr inner join (SELECT id FROM channel) chl on hvr.channel_id = chl.id where hvr.user_id = ?", userID)
 	return response, err
 }
 
@@ -442,23 +442,10 @@ func fetchUnread(c echo.Context) error {
 	}
 
 	for _, response := range responses {
-
-		var cnt int64
-		if response.MessageID > 0 {
-			err = db.Get(&cnt,
-				"SELECT COUNT(id) as cnt FROM message WHERE channel_id = ? AND ? < id",
-				response.ChannelID, response.MessageID)
-		} else {
-			err = db.Get(&cnt,
-				"SELECT COUNT(id) as cnt FROM message WHERE channel_id = ?",
-				response.ChannelID)
-		}
-		if err != nil {
-			return err
-		}
 		r := map[string]interface{}{
 			"channel_id": response.ChannelID,
-			"unread":     cnt}
+			"unread":     response.Count
+		}
 		resp = append(resp, r)
 	}
 
