@@ -38,6 +38,11 @@ type Renderer struct {
 	templates *template.Template
 }
 
+type Response struct {
+	ChannelID int64 `db:"channel_id"`
+	MessageID int64 `db:"message_id"`
+}
+
 func (r *Renderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	return r.templates.ExecuteTemplate(w, name, data)
 }
@@ -416,10 +421,6 @@ func queryChannels() ([]int64, error) {
 }
 
 func queryHaveRead(userID) (Response, error) {
-	type Response struct {
-		ChannelID int64 `db:"channel_id"`
-		MessageID int64 `db:"message_id"`
-	}
 	response := Response{}
 	err := db.Select(&response, "SELECT hvr.channel_id, hvr.message_id FROM haveread hvr inner join (select id from channel) chl on hvr.channel_id = chl.id WHERE user_id = ?", userID)
 	return response, err
