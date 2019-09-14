@@ -428,7 +428,7 @@ func fetchUnread(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	time.Sleep(time.Second * 1.5)
+	time.Sleep(time.Second * 1)
 
 	resp := []map[string]interface{}{}
 
