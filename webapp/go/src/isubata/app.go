@@ -420,7 +420,7 @@ func queryChannels() ([]int64, error) {
 	return res, err
 }
 
-func queryHaveRead(userID int64) (Response, error) {
+func queryHaveRead(userID int64) ([]Response, error) {
 	response := []Response{}
 	err := db.Select(&response, "SELECT hvr.channel_id, hvr.message_id FROM haveread hvr inner join (select id from channel) chl on hvr.channel_id = chl.id WHERE user_id = ?", userID)
 	return response, err
