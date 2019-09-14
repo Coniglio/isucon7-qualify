@@ -444,10 +444,10 @@ func fetchUnread(c echo.Context) error {
 	for _, response := range responses {
 
 		var cnt int64
-		if reponse.MessageID > 0 {
+		if response.MessageID > 0 {
 			err = db.Get(&cnt,
 				"SELECT COUNT(id) as cnt FROM message WHERE channel_id = ? AND ? < id",
-				response.ChannelID, reponse.MessageID)
+				response.ChannelID, response.MessageID)
 		} else {
 			err = db.Get(&cnt,
 				"SELECT COUNT(id) as cnt FROM message WHERE channel_id = ?",
